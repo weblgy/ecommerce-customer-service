@@ -1,0 +1,62 @@
+# ===== 敏感信息 / Secrets =====
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+secrets/
+credentials*.json
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+build/
+develop/
+dist/
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ===== Node.js =====
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/cache
+.yarn/install-state.gz
+
+# ===== 构建产物 =====
+dist/
+dist-ssr/
+*.local
+.vite/
+
+# ===== IDE / 编辑器 =====
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ===== 评测 / 工具产物 =====
+.jbeval/
+.DS_Store
+Thumbs.db
+
+# ===== 日志 / 临时 =====
+*.log
+logs/
+*.tmp
+*.bak
