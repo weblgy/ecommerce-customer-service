@@ -1,18 +1,28 @@
 from atguigu.domain.message import UserMessage, BotMessage
 from atguigu.domain.state import DialogueState
+from atguigu.task.flow.conditions import ConditionEvaluator
 from atguigu.task.flow.links import FlowStepLink, ConditionalLink, FallbackLink
 from atguigu.task.flow.models import FlowCatalog, Flow
 from atguigu.task.flow.steps import FlowStep, StartFlowStep, CollectSlotStep, ActionFlowStep, ResponseFlowStep, \
     EndFlowStep
+from atguigu.task.response.renderer import ResponseRenderer
 
 
 class FlowExecutor:
-    def __init__(self,max_steps_per_turn: int = 100) -> None:
+    def __init__(
+        self,
+        condition_evaluator: ConditionEvaluator,
+        response_renderer: ResponseRenderer,
+        max_steps_per_turn: int = 100
+    ) -> None:
+        self.response_renderer = response_renderer
+        self.condition_evaluator = condition_evaluator
         self.max_steps_per_turn = max_steps_per_turn
 
     def run_task(self,state:DialogueState,flows:FlowCatalog,user_message:UserMessage) -> list[BotMessage]:
+        bot_message: list[BotMessage] = []
         if not state.task_state.active:
-            return []
+            return bot_message
 
         flow:Flow = flows.get_flow_by_id(state.task_state.active.flow_id)
         step:FlowStep = flow.get_step_by_id(state.task_state.active.step_id)
@@ -29,7 +39,10 @@ class FlowExecutor:
                 pass
 
             if isinstance(step,ResponseFlowStep):
-                pass
+                bot_message = self.response_renderer.render(step.template, state, user_message)
+                bot_message.append(bot_message)
+                self.advance(step,state)
+                continue
 
             if isinstance(step,EndFlowStep):
                 pass
@@ -44,7 +57,7 @@ class FlowExecutor:
         for link in next:
             if isinstance(link,ConditionalLink):
                 # 校验condition是否成立
-                result = bool(eval(link.condition,{'__builtins__':{}},{'slots':state.task_state.active.slots}))
+                result = self.condition_evaluator.evaluate(link.condition, {'slots': state.task_state.active.slots})
                 # 成立：return target
                 if result:
                     return link.target
