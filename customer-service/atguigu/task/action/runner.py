@@ -1,0 +1,21 @@
+from atguigu.domain.state import DialogueState
+from atguigu.task.action.base import ActionResult
+from atguigu.task.action.registry import ActionRegistry
+from dataclasses import dataclass, field
+from typing import Any
+
+
+@dataclass
+class ActionCall:
+    action_name: str
+    action_kwargs: dict[str, Any] = field(
+        default_factory=dict
+    )
+
+class ActionRunner:
+    def __init__(self, registry:ActionRegistry):
+        self.registry = registry
+
+    def run(self, action_call: ActionCall,state: DialogueState) -> ActionResult:
+        action = self.registry.get(action_call.action_name)
+        return action.run(state,action_call.action_kwargs)
