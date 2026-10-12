@@ -22,7 +22,7 @@ class FlowExecutor:
         self.condition_evaluator = condition_evaluator
         self.max_steps_per_turn = max_steps_per_turn
 
-    def run_task(self,state:DialogueState,flows:FlowCatalog,user_message:UserMessage) -> list[BotMessage]:
+    async def run_task(self,state:DialogueState,flows:FlowCatalog,user_message:UserMessage) -> list[BotMessage]:
         bot_messages: list[BotMessage] = []
         if not state.task_state.active:
             return bot_messages
@@ -36,7 +36,7 @@ class FlowExecutor:
                 continue
 
             if isinstance(step,CollectSlotStep):
-                should_wait = self._run_collect_step(step, state,user_message,bot_message)
+                should_wait = await self._run_collect_step(step, state,user_message,bot_message)
                 if should_wait:
                     return bot_message
                 else:
@@ -45,13 +45,13 @@ class FlowExecutor:
 
             if isinstance(step,ActionFlowStep):
                 action_call = ActionCall(step.action,step.args)
-                action_result = self.action_runner.run(action_call,state)
+                action_result = await self.action_runner.run(action_call,state)
                 state.task_state.active.slots.update(action_result.slots)
                 self.advance(step,state)
                 continue
 
             if isinstance(step,ResponseFlowStep):
-                bot_message = self.response_renderer.render(step.template, state, user_message)
+                bot_message =await self.response_renderer.render(step.template, state, user_message)
                 bot_message.append(bot_message)
                 self.advance(step,state)
                 continue
@@ -79,13 +79,13 @@ class FlowExecutor:
             if isinstance(link,FallbackLink):
                 return link.target
 
-    def _run_collect_step(self, step:CollectSlotStep, state:DialogueState, user_message:UserMessage, bot_message:list[BotMessage]) -> bool:
+    async def _run_collect_step(self, step:CollectSlotStep, state:DialogueState, user_message:UserMessage, bot_message:list[BotMessage]) -> bool:
         slot_value = state.task_state.active.slots.get(step.slot_name)
         if not slot_value:
             self.try_to_fill_slot_from_focused_object(step, state)
         slot_value = state.task_state.active.slots.get(step.slot_name)
         if not slot_value:
-            bot_message.append(self.response_renderer.render(step.template, state, user_message))
+            bot_message.append(await self.response_renderer.render(step.template, state, user_message))
             return True
         else:
             if not step.validation:
@@ -97,7 +97,7 @@ class FlowExecutor:
                else:
                     state.task_state.active.slots.pop(step.slot_name)
                     bot_message.append(
-                        self.response_renderer.render(step.validation.failure_template, state, user_message)
+                        await self.response_renderer.render(step.validation.failure_template, state, user_message)
                     )
                     return True
 

@@ -6,15 +6,15 @@ from atguigu.task.lifecycle.models import TaskEvent
 
 
 class CommandProcessor:
-    def process(self,commands:list[Command],state:DialogueState,flow_catalog:FlowCatalog) -> list[TaskEvent]:
+    async def process(self,commands:list[Command],state:DialogueState,flow_catalog:FlowCatalog) -> list[TaskEvent]:
         events:list[TaskEvent] = []
         for command in commands:
-            event = self._apply(command,state,flow_catalog)
+            event = await self._apply(command,state,flow_catalog)
             if event:
                 events.append(event)
         return events
 
-    def _apply(self, command:Command, state:DialogueState, flow_catalog:FlowCatalog) -> TaskEvent | None:
+    async def _apply(self, command:Command, state:DialogueState, flow_catalog:FlowCatalog) -> TaskEvent | None:
         if isinstance(command,StartFlowCommand):
             flow: Flow = flow_catalog.get_flow_by_id(command.flow)
             start_step:StartFlowStep = flow.get_start_step()

@@ -13,7 +13,7 @@ class TaskLifecycleResponder:
     def __init__(self, flows: FlowCatalog) -> None:
         self.flows = flows
 
-    def respond(
+    async def respond(
         self,
         events: list[TaskEvent],
     ) -> list[BotMessage]:

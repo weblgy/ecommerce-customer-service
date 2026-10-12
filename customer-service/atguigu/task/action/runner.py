@@ -16,6 +16,6 @@ class ActionRunner:
     def __init__(self, registry:ActionRegistry):
         self.registry = registry
 
-    def run(self, action_call: ActionCall,state: DialogueState) -> ActionResult:
+    async def run(self, action_call: ActionCall,state: DialogueState) -> ActionResult:
         action = self.registry.get(action_call.action_name)
-        return action.run(state,action_call.action_kwargs)
+        return await action.run(state,action_call.action_kwargs)

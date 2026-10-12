@@ -20,9 +20,9 @@ class TaskHandler:
         self.flow_executor = flow_executor
         self.flow_catalog = flow_catalog
 
-    def handle(self, command: list[Command],state:DialogueState,user_message:UserMessage) -> list[BotMessage]:
-        task_events: list[TaskEvent] = self.command_processor.process(command,state,self.flow_catalog)
-        messages: list[BotMessage] = self.task_lifecycle_responder.respond(task_events)
-        task_bot_messages: list[BotMessage] = self.flow_executor.run_task(state,self.flow_catalog,user_message)
+    async def handle(self, command: list[Command],state:DialogueState,user_message:UserMessage) -> list[BotMessage]:
+        task_events: list[TaskEvent] = await self.command_processor.process(command,state,self.flow_catalog)
+        messages: list[BotMessage] =await self.task_lifecycle_responder.respond(task_events)
+        task_bot_messages: list[BotMessage] = await self.flow_executor.run_task(state,self.flow_catalog,user_message)
         messages.extend(task_bot_messages)
         return messages
